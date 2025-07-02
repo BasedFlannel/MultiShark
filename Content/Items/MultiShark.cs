@@ -1,6 +1,8 @@
+using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
+using Terraria.Audio;
 
 namespace MultiShark.Content.Items
 { 
@@ -9,6 +11,23 @@ namespace MultiShark.Content.Items
 	// https://github.com/tModLoader/tModLoader/tree/stable/ExampleMod
 	public class MultiShark : ModItem
 	{
+		private static int[] bulletIDs = 
+		{
+			ProjectileID.Bullet,
+			ProjectileID.MeteorShot,
+			ProjectileID.SilverBullet,
+			ProjectileID.CrystalBullet,
+			ProjectileID.CursedBullet,
+			ProjectileID.ChlorophyteBullet,
+			ProjectileID.BulletHighVelocity,
+			ProjectileID.IchorBullet,
+			ProjectileID.VenomBullet,
+			ProjectileID.PartyBullet,
+			ProjectileID.NanoBullet,
+			ProjectileID.ExplosiveBullet,
+			ProjectileID.GoldenBullet
+		};
+		
 		// The Display Name and Tooltip of this item can be edited in the 'Localization/en-US_Mods.MultiShark.hjson' file.
 		public override void SetDefaults()
 		{
@@ -28,8 +47,14 @@ namespace MultiShark.Content.Items
 			//Other properties
 			Item.value = Item.buyPrice(gold: 9);
 			Item.rare = ItemRarityID.Pink;
-			Item.UseSound = SoundID.Item61;
-
+			
+			//Creating a custom variant of Item61 sound, used for the PewMatic Horn
+			Item.UseSound = new SoundStyle(SoundID.Item61.SoundPath){
+				Volume = 0.9f,
+				MaxInstances = 1,
+				PitchVariance = 0.2f,
+				SoundLimitBehavior = SoundLimitBehavior.ReplaceOldest
+			};
 			//Gun Specific Properties
 			Item.noMelee = true;
 			Item.shoot = ProjectileID.PurificationPowder;
@@ -40,12 +65,25 @@ namespace MultiShark.Content.Items
 
 		public override void AddRecipes()
 		{
-			Recipe recipe = CreateRecipe();
-			recipe.AddIngredient(ItemID.Megashark, 1);
-			recipe.AddIngredient(ItemID.PewMaticHorn, 1);
-			recipe.AddIngredient(ItemID.ChlorophyteBullet, 720);
-			recipe.AddTile(TileID.WorkBenches);
-			recipe.Register();
+			CreateRecipe()
+				.AddIngredient(ItemID.Megashark, 1)
+				.AddIngredient(ItemID.PewMaticHorn, 1)
+				.AddIngredient(ItemID.ChlorophyteBullet, 720)
+				.AddTile(TileID.WorkBenches)
+				.Register();
+		}
+
+		public override void ModifyShootStats(Player player, ref Vector2 position, ref Vector2 velocity, ref int type, ref int damage, ref float knockback) {
+			//This section determines what bullet will be fired			
+			if(Main.rand.NextBool(70))
+			{
+				//1/70 random chance to be a Luminite Bullet so they're not quite as common as the others you have access to by this point
+				type = ProjectileID.MoonlordBullet;
+			} else {
+				//randomly selects a bullet from the list above to fire.
+				type = bulletIDs[Main.rand.Next(13)];
+			}
+
 		}
 	}
 }
